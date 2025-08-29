@@ -1,0 +1,46 @@
+name: bats
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.25"
+  K8S_VERSION: "v1.35.0"
+  KIND_VERSION: "v0.30.0"
+  KIND_CLUSTER_NAME: kind
+
+jobs:
+  bats_tests:
+    runs-on: ubuntu-22.04
+    name: Bats e2e tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bats and bats libs
+        id: setup-bats
+        uses: bats-core/bats-action@3.0.1
+        with:
+          support-path: ${{ github.workspace }}/tests/test_helper/bats-support
+          assert-path: "${{ github.workspace }}/tests/test_helper/bats-assert"
+      - name: Bats tests
+        shell: bash
+        env:
+         BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+         TERM: xterm
+        run: bats -o _artifacts --print-output-on-failure tests/
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kind-logs-bats-tests-${{ github.run_id }}
+          path: ./_artifacts
+ 
