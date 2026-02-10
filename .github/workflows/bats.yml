@@ -39,7 +39,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: kind-logs-bats-tests-${{ github.run_id }}
           path: ./_artifacts
