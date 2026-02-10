@@ -44,29 +44,26 @@ update:
 ensure-buildx:
 	./hack/init-buildx.sh
 
-# get image name from directory we're building
-IMAGE_NAME=hostdevice
 # docker image registry, default to upstream
 REGISTRY?=gcr.io/k8s-staging-networking
 # tag based on date-sha
 TAG?=$(shell echo "$$(date +v%Y%m%d)-$$(git describe --always --dirty)")
-# the full image tag
-IMAGE?=$(REGISTRY)/$(IMAGE_NAME):$(TAG)
 PLATFORMS?=linux/amd64,linux/arm64
 
 # required to enable buildx
 export DOCKER_CLI_EXPERIMENTAL=enabled
+image: image-build
 image-build: image-build-hostdevice
 
 image-build-hostdevice: ensure-buildx
-	docker buildx build . \
-		--tag="${IMAGE}" \
+	docker buildx build -f drivers/hostdevice/Dockerfile . \
+		--tag="${REGISTRY}/hostdevice:${TAG}" \
 		--platform="${PLATFORMS}" \
 		--load
 
 image-push: image-push-hostdevice
 
 image-push-hostdevice: ensure-buildx
-	docker buildx build . \
-		--tag="${IMAGE}" \
+	docker buildx build -f drivers/hostdevice/Dockerfile . \
+		--tag="${REGISTRY}/hostdevice:${TAG}" \
 		--push
